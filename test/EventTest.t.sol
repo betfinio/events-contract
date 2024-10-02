@@ -47,6 +47,7 @@ contract EventTest is Test {
         sides[0] = 1;
         sides[1] = 2;
         _event = new Event(address(game), sides, block.timestamp, block.timestamp + 1 days, block.timestamp + 2 days);
+        game.grantRole(game.REGISTRATOR(), address(this));
         game.addEvent(address(_event));
 
         // get pass

@@ -74,7 +74,7 @@ contract EventFactory is GameInterface, FactoryInterface, AccessControl {
         return bet;
     }
 
-    function addEvent(address _event) external {
+    function addEvent(address _event) external onlyRole(REGISTRATOR) {
         isEvent[_event] = true;
         emit EventCreated(_event);
     }

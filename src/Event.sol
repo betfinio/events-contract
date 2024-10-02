@@ -135,18 +135,6 @@ contract Event is EventInterface, Ownable {
             status = 32;
             return;
         }
-        // // calculate bank for event
-        // uint256 eventBank = bank - (bank * fee) / 10_000;
-
-        // for (uint256 i = 0; i < betsBySide[side].length; i++) {
-        //     EventBet bet = EventBet(betsBySide[side][i]);
-        //     uint256 amount = bet.getAmount();
-        //     uint256 winAmount = (amount * eventBank) / bankBySide[side];
-        //     bet.setResult(winAmount);
-        //     require(token.transfer(bet.getPlayer(), winAmount), "E12");
-        // }
-        // distributed = true;
-        // status = 2;
         status = 22;
         winnerSide = side;
         emit WinnerCalculated(side);
@@ -245,7 +233,7 @@ contract Event is EventInterface, Ownable {
     }
 
     function distribute(uint256 _offset, uint256 _limit) external {
-        require(status == 22, "E11");
+        require(status == 22 || status == 21, "E11");
         _distribute(_offset, _limit);
     }
 

@@ -32,6 +32,7 @@ contract EventUnitTest is Test {
         _event = new Event(
             address(_eventFactory), sides, block.timestamp, block.timestamp + 1 days, block.timestamp + 2 days
         );
+        _eventFactory.grantRole(_eventFactory.REGISTRATOR(), address(this));
         _eventFactory.addEvent(address(_event));
     }
 
