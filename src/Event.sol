@@ -229,7 +229,9 @@ contract Event is EventInterface, Ownable {
 
     function refundNext() external {
         // execute refund with predefined step
-        refundNextByStep(CALC_STEP);
+        uint256 pending = bets.length - offset;
+        if (pending == 0) return;
+        refundNextByStep(CALC_STEP >= pending ? pending : CALC_STEP);
     }
 
     function distribute(uint256 _offset, uint256 _limit) external {
