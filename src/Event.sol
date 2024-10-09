@@ -24,6 +24,7 @@ import { CoreInterface } from "./interfaces/CoreInterface.sol";
  * E10 - Invalid count of sides
  * E11 - Refund/Distribute/Settle is not possible
  * E12 - Transfer failed
+ * E13 - invalid step
  */
 contract Event is EventInterface, Ownable {
     using SafeERC20 for IERC20;
@@ -220,7 +221,7 @@ contract Event is EventInterface, Ownable {
         // Ensure the contract is in a refundable state
         require(status == 31 || status == 32, "E11");
         // Ensure the step is not zero or negative
-        require(step > 0, "E09");
+        require(step > 0, "E13");
         // Ensure the step is not larger than the total number of bets
         require(step <= bets.length, "E09");
         // execute refund
