@@ -6,6 +6,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * Errors:
+ * EB00: Invalid constructor arguments
  * EB01: Result must be greater than 0
  */
 contract EventBet is BetInterface, Ownable {
@@ -24,6 +25,8 @@ contract EventBet is BetInterface, Ownable {
     uint256 private side;
 
     constructor(address _player, uint256 _amount, address _game, uint256 _side) Ownable(_msgSender()) {
+        require(_player != address(0), "EB00");
+        require(_amount > 0, "EB00");
         player = _player;
         amount = _amount;
         status = 1;

@@ -15,6 +15,7 @@ import { FactoryInterface } from "./FactoryInterface.sol";
  * EF01 - Invalid event
  * EF02 - Caller is not core
  * EF03 - Transfer failed
+ * EF04 - Invalid constructor arguments
  */
 contract EventFactory is GameInterface, FactoryInterface, AccessControl {
     using SafeERC20 for IERC20;
@@ -32,6 +33,8 @@ contract EventFactory is GameInterface, FactoryInterface, AccessControl {
     event BetCreated(address indexed bet, address indexed _event);
 
     constructor(address _staking, address _core) {
+        require(_staking != address(0), "EF04");
+        require(_core != address(0), "EF04");
         created = block.timestamp;
         staking = _staking;
         core = CoreInterface(_core);
