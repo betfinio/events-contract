@@ -14,6 +14,7 @@ contract EventBet is BetInterface, Ownable {
     address private immutable player;
     uint256 private immutable amount;
     address private immutable game;
+    uint256 private immutable side;
 
     // 1 - registered
     // 2 - won
@@ -21,8 +22,6 @@ contract EventBet is BetInterface, Ownable {
     // 4 - refunded
     uint256 private status;
     uint256 private result;
-
-    uint256 private side;
 
     constructor(address _player, uint256 _amount, address _game, uint256 _side) Ownable(_msgSender()) {
         require(_player != address(0), "EB00");

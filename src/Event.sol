@@ -33,9 +33,9 @@ contract Event is EventInterface, Ownable {
     uint256 public immutable fee;
     IERC20 public immutable token;
 
-    uint256 public start; // start time where bets are accepted
-    uint256 public end; // end time where bets are accepted
-    uint256 public finish; // time when event is finished and results are acceptable
+    uint256 public immutable start; // start time where bets are accepted
+    uint256 public immutable end; // end time where bets are accepted
+    uint256 public immutable finish; // time when event is finished and results are acceptable
     uint256 private bank;
 
     uint256 public winnerSide = 0; // winner is not known
@@ -230,7 +230,9 @@ contract Event is EventInterface, Ownable {
     function refundNext() external {
         // execute refund with predefined step
         uint256 pending = bets.length - offset;
-        if (pending == 0) return;
+        if (pending == 0) {
+            revert("E11");
+        }
         refundNextByStep(CALC_STEP >= pending ? pending : CALC_STEP);
     }
 
