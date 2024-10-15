@@ -282,4 +282,15 @@ contract EventUnitTest is Test {
         assertEq(_event.getBank(), 0);
         placeBetWithError(alice, 1000 ether, 5, bytes("E08"));
     }
+
+    function testBonus() public {
+        placeBet(alice, 1000 ether, 1);
+        placeBet(bob, 2000 ether, 1);
+
+        vm.warp(block.timestamp + 2 days);
+        _event.determineWinner(1);
+		_event.distribute(0, 100);
+        assertEq(token.balanceOf(alice), 914 ether + 75 ether);
+        assertEq(token.balanceOf(bob), 1828 ether + 75 ether);
+    }
 }

@@ -25,12 +25,15 @@ import { CoreInterface } from "./interfaces/CoreInterface.sol";
  * E11 - Refund/Distribute/Settle is not possible
  * E12 - Transfer failed
  * E13 - invalid step
+ * E14 - Bet amount is too low
  */
 contract Event is EventInterface, Ownable {
     using SafeERC20 for IERC20;
 
     FactoryInterface public immutable factory;
 
+    uint256 public constant BONUS = 500;
+    uint256 public constant MIN_BET = 1 ether;
     uint256 public immutable fee;
     IERC20 public immutable token;
 
@@ -57,6 +60,7 @@ contract Event is EventInterface, Ownable {
     mapping(uint256 side => address[] bets) public betsBySide; // array of bets by side (side => bets[])
     mapping(uint256 side => uint256 bank) public bankBySide; // bank by side (side => bank)
     mapping(uint256 side => bool exists) public isSide; // side => bool (is side valid)
+    mapping(uint256 side => uint256 shares) public bonusSharesBySide; // side => bonus shares
 
     uint256 public constant CALC_STEP = 100;
     uint256 public offset = 0;
@@ -98,7 +102,7 @@ contract Event is EventInterface, Ownable {
 
     function placeBet(address, uint256 amount, bytes calldata data) external returns (address) {
         // check if caller is factory
-        require(msg.sender == address(factory), "E04");
+        require(_msgSender() == address(factory), "E04");
         // decode data
         (address _event, uint256 _side, address _player) = abi.decode(data, (address, uint256, address));
         // check if event is valid
@@ -109,6 +113,8 @@ contract Event is EventInterface, Ownable {
         require(block.timestamp <= end, "E03");
         // check if side is valid
         require(isSide[_side], "E08");
+        // check if amount is larger than MIN_BET
+        require(amount >= MIN_BET, "E14");
         // create new bet with player from data: INTENDED!
         EventBet bet = new EventBet(_player, amount, address(factory), _side);
         // increment bank
@@ -119,6 +125,8 @@ contract Event is EventInterface, Ownable {
         bets.push(address(bet));
         // append bet to betsBySide
         betsBySide[_side].push(address(bet));
+        // increase bonus shares
+        bonusSharesBySide[_side] += bankBySide[_side];
         emit BetCreated(address(bet), _player, _side);
         return address(bet);
     }
@@ -145,10 +153,15 @@ contract Event is EventInterface, Ownable {
         // save variable
         uint256 winner = winnerSide;
         // calculate bank to distribute
-        uint256 eventBank = bank - (bank * fee) / 10_000;
+        uint256 bonusShares = bonusSharesBySide[winner];
+        uint256 bonusBank = (bank * BONUS) / 10_000;
+        uint256 coreFee = (bank * fee) / 10_000;
+        uint256 eventBank = bank - bonusBank - coreFee;
+
+        uint256 count = betsBySide[winner].length;
 
         for (uint256 i = _offset; i < _offset + limit; i++) {
-            if (i >= betsBySide[winner].length) break;
+            if (i >= count) break;
             EventBet bet = EventBet(betsBySide[winner][i]);
             if (bet.getStatus() == 1) {
                 // increment distributed
@@ -157,10 +170,12 @@ contract Event is EventInterface, Ownable {
                 // calculate win amount
                 uint256 amount = bet.getAmount();
                 uint256 winAmount = (amount * eventBank) / bankBySide[winner];
+                uint256 betShare = amount * (count - i);
+                uint256 betBonus = (betShare * bonusBank) / bonusShares;
                 // set result
-                bet.setResult(winAmount);
+                bet.setResult(winAmount + betBonus);
                 // transfer tokens
-                require(token.transfer(bet.getPlayer(), winAmount), "E12");
+                require(token.transfer(bet.getPlayer(), winAmount + betBonus), "E12");
             }
         }
     }
@@ -178,6 +193,7 @@ contract Event is EventInterface, Ownable {
     }
 
     function _refund(uint256 step) internal {
+        // ignore bonus when refunding
         // Remaining bets to process
         uint256 remainingBets = bets.length - offset;
         // calculate the actual step
