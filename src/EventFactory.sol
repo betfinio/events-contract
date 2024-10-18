@@ -32,14 +32,14 @@ contract EventFactory is GameInterface, FactoryInterface, AccessControl {
     event EventCreated(address indexed eventAddress);
     event BetCreated(address indexed bet, address indexed _event);
 
-    constructor(address _staking, address _core) {
+    constructor(address _staking, address _core, address owner) {
         require(_staking != address(0), "EF04");
         require(_core != address(0), "EF04");
         created = block.timestamp;
         staking = _staking;
         core = CoreInterface(_core);
         token = IERC20(CoreInterface(_core).token());
-        _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
     }
 
     function getAddress() external view returns (address) {
